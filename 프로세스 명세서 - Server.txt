@@ -1,0 +1,295 @@
+///////////////////////////////////////////////////////////////////////////////
+
+이름 2.1
+제목 : 클라이언트 데이터 수신
+입력 : 클라이언트 데이터
+출력 : 키워드 + 구독 리스트
+시작 ;
+    /* 수신한 클라이언트 데이터를 키워드와 구독 리스트로 분리하여,
+    구독 리스트 검증, 키워드 리스트 검증 호출  */
+    client_data = get_client_data()
+    keywords = client_data.keywords
+    subscriptions = client_data.subscriptions
+    validate_keywords(keywords)
+    validate_subscriptions(subscriptions)
+끝;
+
+///////////////////////////////////////////////////////////////////////////////
+
+이름 2.2
+제목 : 회원 데이터 수신
+입력 : 회원 데이터+검증된 키워드 리스트+검증된 구독 리스트
+출력 : 회원 데이터 저장
+시작 ;
+    /* 회원 데이터를 수신하여 데이터베이스에 저장  */
+    validated_keywords = get_validated_keywords
+    validate_subscriptions = get_validate_subscriptions
+    user_data = get_user_data()
+    store(user_data, validated_keywords, validate_subscriptions)
+끝;
+
+///////////////////////////////////////////////////////////////////////////////
+
+이름 2.3
+제목 : 키워드 검증
+입력 : 키워드
+출력 : 검증된 키워드 리스트+검증된 키워드 저장
+시작 ;
+    /* 키워드의 유효성 검사 후 저장 및 회원 데이터 수신 모듈에 제공  */
+    function validate_keywords(keywords)
+        keyword_list = keywords.split('+')
+        for keyword in keyword_list
+            if keyword == null
+                raise Exception
+    function get_validate_keywords()
+        return keyword_list
+끝;
+
+///////////////////////////////////////////////////////////////////////////////
+
+이름 2.4
+제목 : 구독 리스트 검증
+입력 : 구독 리스트
+출력 : 검증된 구독 리스트+검증된 구독 리스트 저장
+시작 ;
+    /* 키워드의 유효성 검사 후 저장 및 회원 데이터 수신 모듈에 제공  */
+    function validate_subscriptions(subscriptions)
+        subscription_list = subscriptions.split('+')
+        for subscription in subscription_list
+            if subscription == null
+                raise Exception
+            if not subscription in notice_boards
+                raise Exception
+    function get_validate_subscriptions()
+        return subscription_list
+끝;
+
+///////////////////////////////////////////////////////////////////////////////
+
+이름 3.1
+제목 : 크롤링
+입력 : 모든 공지 크롤링
+출력 : RAW 데이터
+시작 ;
+    /* 학교 게시판에서 모든 공지를 크롤링  */
+    function crawling()
+        crawl_targets = ['main','cse',...]
+        crawled_raw_data_list = network_crawling(crawl_targets)
+        return crawled_raw_data_list
+끝;
+
+///////////////////////////////////////////////////////////////////////////////
+
+이름 3.3
+제목 : 새로운 공지 저장
+입력 : 새로운 공지
+출력 : 공지 저장
+시작 ;
+    /* 필터링된 공지를 받아 데이터베이스에 저장  */
+    new_notices = notice_filtering()
+    for notice in new_notices
+        store_to_database(notice)
+끝;
+
+///////////////////////////////////////////////////////////////////////////////
+
+이름 4.1
+제목 : 회원 데이터 수신
+입력 : 회원 데이터 얻기
+출력 : 회원 데이터
+시작 ;
+    /* 회원 데이터를 수신하여 전달  */
+    function get_user_data()
+        user_data = receive_user_data()
+        return user_data
+끝;
+
+///////////////////////////////////////////////////////////////////////////////
+
+이름 4.2
+제목 : 기기 설정 수신
+입력 : 기기 설정 얻기
+출력 : 기기 설정
+시작 ;
+    /* 기기 설정을 받아 전달  */
+    function get_device_settings()
+        device_settings = receive_device_settings()
+        return device_settings
+끝;
+
+///////////////////////////////////////////////////////////////////////////////
+
+이름 4.3
+제목 : 기기 설정 버전 검증
+입력 : 회원 데이터+기기 설정
+출력 : 검증된 기기 설정
+시작 ;
+    /* 회원 데이터와 기기 설정을 받아 기기 설정의 버전을 확인하고 송신 모듈에 전달  */
+    function validate_setting_version()
+        user_data = get_user_data()
+        device_settings = get_device_settings()
+        version = device_settings.version
+        if compatible(version, current_version)
+            return device_settings
+        else
+            return False
+끝;
+
+///////////////////////////////////////////////////////////////////////////////
+
+이름 4.4
+제목 : 기기 설정 송신
+입력 : 검증된 기기 설정
+출력 : 복구 데이터
+시작 ;
+    /* 검증된 기기 설정을 전달 */
+    function get_validated_settings()
+        device_settings = validate_setting_version()
+        return device_settings
+끝;
+
+///////////////////////////////////////////////////////////////////////////////
+
+이름 5.1
+제목 : 기기 설정 수신
+입력 : 기기 설정 얻기
+출력 : 기기 설정
+시작 ;
+    /* 검증된 기기 설정을 수신 */
+    function recieve_validated_settings()
+        device_settings = get_validated_settings()
+        return device_settings
+끝;
+
+///////////////////////////////////////////////////////////////////////////////
+
+이름 5.2
+제목 : 공지 수신
+입력 : 공지 얻기
+출력 : 공지
+시작 ;
+    /* 공지 수신 */
+    function get_notices()
+        notices = get_notices_from_database()
+        return notices
+끝;
+
+///////////////////////////////////////////////////////////////////////////////
+
+이름 5.3
+제목 : 기기별 공지 할당
+입력 : 기기 설정
+출력 : 공지
+시작 ;
+    /* 기기별 구독한 목록에 따라 맞춤형 공지 할당 */
+    device_settings = recieve_validated_settings()
+    notices = get_notices()
+    device_notice_list = []
+    device_push_list = []
+    for device in device_settings
+        to_device_notice_list = []
+        to_device_push_list = []
+        for sub in device.subscriptions
+            notice = notices.get(sub)
+            to_device_notice_list.push(notice)
+        for key in device.keywords
+            keyword = notices.get(key)
+            to_device_push_list.push(keyword)
+        device_notice_list.push(to_device_notice_list)
+        device_push_list.push(to_device_push_list)
+    send_notices(device_notice_list)
+    send_pushs(device_push_list)
+끝;
+
+///////////////////////////////////////////////////////////////////////////////
+
+이름 5.4
+제목 : 맞춤 데이터 송신
+입력 : 기기별 맞춤 공지
+출력 : 구독중인 공지 데이터
+시작 ;
+    /* 기기별 공지 전송 */
+    function send_notices(device_notice_list)
+        for device_notice in device_notice_list
+            send(device_notice)
+끝;
+
+///////////////////////////////////////////////////////////////////////////////
+
+이름 5.5
+제목 : Push 데이터 송신
+입력 : 기기별 Push 데이터
+출력 : Push 데이터
+시작 ;
+    /* 기기별 공지 전송 */
+    function send_pushs(device_push_list)
+        for device_push in device_push_list
+            push(device_push)
+끝;
+
+///////////////////////////////////////////////////////////////////////////////
+
+이름 3.2.1
+제목 : html 태그 식별
+입력 : RAW 데이터
+출력 : 텍스트 추출
+시작 ;
+    /* RAW 데이터에서 html 태그를 식별해 텍스트를 추출  */
+    function text_filtering()
+        crawled_raw_data_list = crawling()
+        text_list = []
+        for crawled_raw_data in crawled_raw_data_list
+            text = crawled_raw_data.html.text
+            text_list.push(html)
+        return text_list
+끝;
+
+///////////////////////////////////////////////////////////////////////////////
+
+이름 3.2.2
+제목 : 공지글 ID 식별
+입력 : 텍스트 추출
+출력 : 공지 ID + 공지글
+시작 ;
+    /* 텍스트에서 공지 제목과 ID 추출  */
+    function split_title_id(text_list)
+        html_list = []
+        title_list = []
+        id_list = []
+        for text in text_list
+            title, id = splite(text)
+            title_list.push(title)
+            id_list.push(id)
+        return (title_list, id_list)
+끝;
+
+///////////////////////////////////////////////////////////////////////////////
+
+이름 3.2.3
+제목 : 새로운 공지 확인
+입력 : 공지 ID + 공지글 + 기존 공지 ID
+출력 : 새로 인식된 공지
+시작 ;
+    /* 새로운 공지가 있는지 확인  */
+    function new_notice_filtering()
+        title_list, id_list = split_title_id()
+        notices = get_notices_from_database()
+        new_notices = []
+        for id in id_list
+            if not id in notices
+                new_notices.push(title_list, id_list)
+        return new_notices
+끝;
+
+///////////////////////////////////////////////////////////////////////////////
+
+이름 3.2.4
+제목 : 새로운 공지 송신
+입력 : 새로 인식된 공지
+출력 : 새로운 공지
+시작 ;
+    /* 새로운 공지 전송  */
+    function send_new_notices()
+        new_notices = new_notice_filtering()
+        return new_notices
+끝;
